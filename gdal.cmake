@@ -500,7 +500,7 @@ add_subdirectory(ogr/ogrsf_frmts)
 add_subdirectory(gcore)
 
 # Bindings
-if (BUILD_SHARED_LIBS)
+if (BUILD_SHARED_LIBS OR GDAL_BUILD_JAVA_BINDINGS)
   add_subdirectory(swig)
 endif ()
 
@@ -602,7 +602,6 @@ endif ()
 
 install(
   TARGETS ${GDAL_LIB_TARGET_NAME}
-  EXPORT gdal-export
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -610,19 +609,7 @@ install(
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   FRAMEWORK DESTINATION "${FRAMEWORK_DESTINATION}")
 
-# Generate targets file for importing directly from GDAL build tree
-export(TARGETS ${GDAL_LIB_TARGET_NAME}
-        NAMESPACE GDAL::
-        FILE "GDAL-targets.cmake")
-
 if (NOT GDAL_ENABLE_MACOSX_FRAMEWORK)
-  # Generate GdalConfig.cmake and GdalConfigVersion.cmake
-  install(
-    EXPORT gdal-export
-    FILE GDAL-targets.cmake
-    NAMESPACE GDAL::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/gdal/
-    EXPORT_LINK_INTERFACE_LIBRARIES)
   if (NOT BUILD_SHARED_LIBS)
     install(
       FILES

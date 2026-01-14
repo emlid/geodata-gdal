@@ -467,12 +467,6 @@ gdal_check_package(ARCHIVE "Multi-format archive and compression library library
 define_find_package2(LIBAEC libaec.h aec)
 gdal_check_package(LIBAEC "Adaptive Entropy Coding implementing Golomb-Rice algorithm (used by GRIB)" CAN_DISABLE)
 
-define_find_package2(JXL jxl/decode.h jxl PKGCONFIG_NAME libjxl)
-gdal_check_package(JXL "JPEG-XL compression" CAN_DISABLE)
-
-define_find_package2(JXL_THREADS jxl/resizable_parallel_runner.h jxl_threads PKGCONFIG_NAME libjxl_threads)
-gdal_check_package(JXL_THREADS "JPEG-XL threading" CAN_DISABLE)
-
 # unused for now gdal_check_package(OpenMP "")
 gdal_check_package(Crnlib "enable gdal_DDS driver" CAN_DISABLE)
 gdal_check_package(basisu "Enable BASISU driver" CONFIG CAN_DISABLE)
@@ -533,12 +527,6 @@ option(GDAL_USE_PUBLICDECOMPWT
 
 # proprietary libraries KAKADU
 include(CheckDependentLibrariesKakadu)
-
-include(CheckDependentLibrariesArrowParquet)
-
-gdal_check_package(OpenDrive "Enable libOpenDRIVE" CONFIG CAN_DISABLE)
-
-gdal_check_package(AdbcDriverManager "Enable ADBC" CONFIG CAN_DISABLE)
 
 # bindings
 

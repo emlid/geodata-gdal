@@ -143,13 +143,30 @@ endif()
 
 # removed dependency check, causing this problem (PROJ >= 6.3 required. Version "9.4.0" found)
 
-gdal_check_package(TIFF "Support for the Tag Image File Format (TIFF)." VERSION 4.1 CAN_DISABLE)
-set_package_properties(
-  TIFF PROPERTIES
-  URL "https://libtiff.gitlab.io/libtiff/"
-  DESCRIPTION "Support for the Tag Image File Format (TIFF)."
-  TYPE RECOMMENDED)
-gdal_internal_library(TIFF)
+# force using static tiff dependency
+if(DEFINED TIFF_LIBRARY)
+    message(STATUS "Using manual TIFF static lib: ${TIFF_LIBRARY}")
+    set(TIFF_FOUND ON CACHE BOOL "" FORCE)
+    set(GDAL_USE_TIFF ON CACHE BOOL "" FORCE)
+    set(TIFF_LIBRARIES TIFF::TIFF CACHE INTERNAL "")
+    set(TIFF_INCLUDE_DIRS ${TIFF_INCLUDE_DIR} CACHE INTERNAL "")
+
+    if(NOT TARGET TIFF::TIFF)
+        add_library(TIFF::TIFF STATIC IMPORTED)
+        set_target_properties(TIFF::TIFF PROPERTIES
+            IMPORTED_LOCATION "${TIFF_LIBRARY}"
+            INTERFACE_INCLUDE_DIRECTORIES "${TIFF_INCLUDE_DIR}"
+        )
+    endif()
+    if(NOT TARGET TIFF::LibTIFF)
+        get_target_property(_aliased_target TIFF::TIFF ALIASED_TARGET)
+        if(_aliased_target)
+            add_library(TIFF::LibTIFF ALIAS ${_aliased_target})
+        else()
+            add_library(TIFF::LibTIFF ALIAS TIFF::TIFF)
+        endif()
+    endif()
+endif()
 
 if (DEFINED ENV{CONDA_PREFIX} AND UNIX)
     # Currently on Unix, the Zstd cmake config file is buggy. It declares a

@@ -37,8 +37,8 @@
 
 #include "libtiff_codecs.h"
 
-#if defined(__x86_64__) || defined(_M_X64)
-#include <emmintrin.h>
+#ifdef LERC_SUPPORT
+#undef LERC_SUPPORT
 #endif
 
 #define STRINGIFY(x) #x

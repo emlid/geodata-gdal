@@ -718,6 +718,15 @@ public:
                            fe, fn );
   }
 
+%feature( "kwargs" ) SetHOMAC;
+  OGRErr SetHOMAC( double clat, double clong,
+               double azimuth, double recttoskew,
+               double scale,
+               double fe, double fn ) {
+    return OSRSetHOMAC( self, clat, clong, azimuth, recttoskew,
+                      scale, fe, fn );
+  }
+
 %feature( "kwargs" ) SetHOM;
   OGRErr SetHOM( double clat, double clong,
                double azimuth, double recttoskew,
@@ -1418,7 +1427,7 @@ void TransformBounds(
 /*                   GetCRSInfoListFromDatabase()                       */
 /************************************************************************/
 
-#if defined(SWIGPYTHON) || defined(SWIGCSHARP)
+#if defined(SWIGPYTHON) || defined(SWIGCSHARP) || defined(SWIGJAVA)
 
 %rename (CRSType) OSRCRSType;
 typedef enum OSRCRSType
@@ -1584,7 +1593,7 @@ char** GetAuthorityListFromDatabase()
 %}
 %clear (char **);
 
-#ifdef SWIGPYTHON
+#if defined(SWIGPYTHON)
 %inline %{
 void GetCRSInfoListFromDatabase( const char *authName,
                                  OSRCRSInfo*** pList,
@@ -1593,8 +1602,53 @@ void GetCRSInfoListFromDatabase( const char *authName,
     *pList = OSRGetCRSInfoListFromDatabase(authName, NULL, pnListCount);
 }
 %}
+#elif defined(SWIGJAVA)
+%{
+#include <assert.h>
+%}
 
-#endif // SWIGPYTHON
+%typemap(in,numinputs=0) (OSRCRSInfo*** pList, int* pnListCount) (int tempsize, OSRCRSInfo **tempdata) %{
+  $2 = &tempsize;
+  $1 = &tempdata;
+%}
+
+%typemap(jtype) int GetCRSInfoListFromDatabase "long[]";
+%typemap(jstype) int GetCRSInfoListFromDatabase "CRSInfo[]";
+%typemap(javaout) int GetCRSInfoListFromDatabase {
+    final long[] arr = $jnicall;
+    CRSInfo[] ret = new CRSInfo[arr.length];
+    for (int i = 0; i < arr.length; ++i) {
+      ret[i] = new CRSInfo(arr[i], true);
+    }
+    return ret;
+  }
+
+%typemap(jni) int GetCRSInfoListFromDatabase "jlongArray";
+
+%typemap(out) int GetCRSInfoListFromDatabase %{
+  assert(!$1);
+%}
+
+%typemap(argout) (OSRCRSInfo*** pList, int* pnListCount) {
+  $result = JCALL1(NewLongArray, jenv, *$2);
+  jlong* temparr = new jlong[*$2];
+  for (size_t i = 0; i < *$2; ++i) {
+    *(OSRCRSInfo**)&temparr[i] = ((*$1)[i]);
+  }
+  JCALL4(SetLongArrayRegion, jenv, $result, 0, *$2, temparr);
+  delete[] temparr;
+}
+
+%inline %{
+int GetCRSInfoListFromDatabase( const char *authName,
+                                  OSRCRSInfo*** pList,
+                                  int* pnListCount)
+{
+    *pList = OSRGetCRSInfoListFromDatabase(authName, NULL, pnListCount);
+    return 0;
+}
+%}
+#endif
 
 %inline %{
 void SetPROJSearchPath( const char *utf8_path )

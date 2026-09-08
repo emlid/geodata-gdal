@@ -32,6 +32,14 @@ execute_process(COMMAND ${Java_JAVADOC_EXECUTABLE}
                         -sourcepath "${BUILD_DIR}/org_patched"
                         -subpackages org.gdal
                         -windowtitle "GDAL/OGR ${GDAL_VERSION} Java bindings API"
+                        # SWIG's generated @see/<a href> doc comments contain spaces/commas in
+                        # their anchors (e.g. "#Open(java.lang.String, int)"), which JDK 8+'s
+                        # Standard Doclet validates strictly as URIs and rejects. This step's
+                        # exit code isn't checked (see below), so these were silently non-fatal
+                        # noise rather than a real build failure — but confusing enough to read
+                        # as one, so disable doclint rather than leave it spraying fake errors.
+                        -Xdoclint:none
+                        -quiet
                 WORKING_DIRECTORY "${BUILD_DIR}")
 
 # Create a zip with the Javadoc
